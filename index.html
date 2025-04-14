@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Duel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+        }
+        .container {
+            width: 800px;
+            text-align: center;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 10px;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .gameArea {
+            width: 300px;
+            height: 400px;
+            background-color: #d3d3d3;
+            margin: 0 auto;
+            position: relative;
+        }
+        .player {
+            width: 40px;
+            height: 40px;
+            background-color: blue;
+            position: absolute;
+            bottom: 10px;
+        }
+        .obstacle {
+            width: 40px;
+            height: 40px;
+            background-color: red;
+            position: absolute;
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="intro" class="card">
+            <h1>Welcome to Focus Duel</h1>
+            <p>We are going to do some math problems for a few minutes. Try to solve as many problems as quickly and accurately as you can. Enter your answer and either hit "enter" on the keyboard or click "submit."</p>
+            <p>You are doing this activity because it can make you smarter. Research shows that practicing basic math skills, like simple math, makes you a better problem solver. The more problems that you do, the better you will be at solving problems in the future.</p>
+            <p>If you feel like it, you are free to click on "Play Reaction Dodge" to play a fun game. But remember, the more problems you complete, the more likely it is that your problem-solving ability will improve.</p>
+            <p>You will not be graded on any of this activity and you are free to choose whichever you want. If you have any questions for your teacher before you begin, please raise your hand.</p>
+            <button class="button" onclick="startActivity('math')">Start Math</button>
+            <button class="button" onclick="startActivity('dodge')">Play Reaction Dodge</button>
+        </div>
+
+        <div id="mathActivity" class="card" style="display: none;">
+            <h2>Solve Math Problems</h2>
+            <div id="problem"></div>
+            <input type="number" id="userAnswer" />
+            <button class="button" onclick="submitAnswer()">Submit</button>
+        </div>
+
+        <div id="gameActivity" class="card" style="display: none;">
+            <h2>Play Reaction Dodge</h2>
+            <div id="gameArea" class="gameArea">
+                <div id="player" class="player"></div>
+            </div>
+            <p>Score: <span id="score">0</span></p>
+            <button class="button" onclick="endGame()">End Game</button>
+        </div>
+
+        <div id="results" class="card" style="display: none;">
+            <h2>Session Results</h2>
+            <p>Time spent on math: <span id="mathTime">0</span> seconds</p>
+            <p>Time spent on games: <span id="gameTime">0</span> seconds</p>
+            <button class="button" onclick="copySessionData()">Copy Session Data</button>
+        </div>
+    </div>
+
+    <script>
+        let mathTime = 0;
+        let gameTime = 0;
+        let gameInterval;
+        let obstacleSpeed = 3;  // Slowed down obstacle speed
+        let dodgePosition = 50;
+        let playerPosition = 0;
+        let gameScore = 0;
+        let lastStartTime = Date.now();
+
+        function startActivity(activity) {
+            document.getElementById('intro').style.display = 'none';
+            if (activity === 'math') {
+                document.getElementById('mathActivity').style.display = 'block';
+                generateMathProblem();
+                lastStartTime = Date.now();
+            } else if (activity === 'dodge') {
+                document.getElementById('gameActivity').style.display = 'block';
+                startDodgeGame();
+                lastStartTime = Date.now();
+            }
+        }
+
+        function generateMathProblem() {
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            const operator = ["+", "-", "*"][Math.floor(Math.random() * 3)];
+            const problem = `${num1} ${operator} ${num2} = ?`;
+            document.getElementById('problem').textContent = problem;
+        }
+
+        function submitAnswer() {
+            const userAnswer = document.getElementById('userAnswer').value;
+            // Basic math logic (check answer)
+            document.getElementById('userAnswer').value = '';
+            generateMathProblem();
+            mathTime = Math.floor((Date.now() - lastStartTime) / 1000);
+        }
+
+        function startDodgeGame() {
+            gameScore = 0;
+            document.getElementById('score').textContent = gameScore;
+            gameInterval = setInterval(moveObstacle, 100);
+        }
+
+        function moveObstacle() {
+            const player = document.getElementById('player');
+            const gameArea = document.getElementById('gameArea');
+            const obstacle = document.createElement('div');
+            obstacle.classList.add('obstacle');
+            obstacle.style.left = `${Math.random() * 90}%`;
+            gameArea.appendChild(obstacle);
+
+            let position = 0;
+            let obstacleFallInterval = setInterval(() => {
+                position += obstacleSpeed;
+                obstacle.style.top = `${position}%`;
+                if (position >= 100) {
+                    clearInterval(obstacleFallInterval);
+                    gameArea.removeChild(obstacle);
+                    gameScore++;
+                    document.getElementById('score').textContent = gameScore;
+                }
+            }, 100);
+
+            gameTime = Math.floor((Date.now() - lastStartTime) / 1000);
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            document.getElementById('gameActivity').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function copySessionData() {
+            const sessionData = `Time spent on math: ${mathTime}s, Time spent on games: ${gameTime}s, Score: ${gameScore}`;
+            navigator.clipboard.writeText(sessionData)
+                .then(() => alert('Session data copied to clipboard!'));
+        }
+    </script>
+</body>
+</html>
