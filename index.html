@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Focus Duel</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      background: #f5f5f5;
+    }
+    .container {
+      display: flex;
+      width: 100%;
+      max-width: 1000px;
+      margin: 20px;
+    }
+    .panel {
+      flex: 1;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    input[type=number] {
+      padding: 5px;
+      font-size: 16px;
+      width: 80px;
+    }
+    .game-box {
+      position: relative;
+      width: 256px;
+      height: 256px;
+      margin: 0 auto;
+      background-color: #ddd;
+    }
+    .player, .obstacle {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+    }
+    .player {
+      background-color: blue;
+      bottom: 10px;
+    }
+    .obstacle {
+      background-color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="panel" id="left-panel">
+      <div class="card" id="left-card">
+        <h1>Welcome to Focus Duel</h1>
+        <div id="intro">
+          <p>We are going to do some math problems for a few minutes. Try to solve as many problems as quickly and accurately as you can. Enter your answer and either hit "enter" on the keyboard or click "submit."</p>
+          <p>You are doing this activity because it can make you smarter. Research shows that practicing basic math skills, like simple math, makes you a better problem solver. The more problems that you do, the better you will be at solving problems in the future.</p>
+          <p>If you feel like it, you are free to click on "Play Reaction Dodge" to play a fun game. But remember, the more problems you complete, the more likely it is that your problem-solving ability will improve.</p>
+          <p>You will not be graded on any of this activity and you are free to choose whichever you want. If you have any questions for your teacher before you begin, please raise your hand.</p>
+          <button onclick="startSession()">Start</button>
+        </div>
+        <div id="task-buttons" style="display:none;">
+          <button onclick="switchTask('math')">Solve Math Problems</button>
+          <button onclick="switchTask('dodge')">Play Reaction Dodge</button>
+          <div id="end-buttons" style="margin-top: 20px; display: none;">
+            <button onclick="copyData()">Copy Session Data</button>
+            <button onclick="resetSession()">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" id="right-panel">
+      <div class="card" id="right-card">
+        <div id="math-task" style="display:none;">
+          <h2>Solve the Math Problem</h2>
+          <p id="problem"></p>
+          <input type="number" id="answerInput" />
+          <button onclick="submitAnswer()">Submit</button>
+        </div>
+        <div id="dodge-task" style="display:none;">
+          <h2>Reaction Dodge</h2>
+          <p>Score: <span id="dodgeScore">0</span></p>
+          <div class="game-box">
+            <div class="player" id="player" style="left:50%"></div>
+            <div class="obstacle" id="obstacle" style="top:0%; left:0%"></div>
+          </div>
+          <div id="gameOverMsg" style="display:none;">
+            <p style="color:red;">Game Over!</p>
+            <button onclick="restartGame()">Play Again</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let task = null;
+    let startTime = null;
+    let totalTime = 0;
+    let mathTime = 0, gameTime = 0;
+    let problemsAttempted = 0, problemsCorrect = 0;
+    let currentAnswer = null;
+    let interval;
+    let sessionEnded = false;
+    let dodgeScore = 0;
+    let playerPos = 50;
+    let obstacleTop = 0;
+    let obstacleLeft = Math.random() * 90;
+    let gameRunning = false;
+    let speed = 2;
+
+    function startSession() {
+      document.getElementById("intro").style.display = "none";
+      document.getElementById("task-buttons").style.display = "block";
+      startTime = Date.now();
+      interval = setInterval(updateTime, 1000);
+    }
+
+    function switchTask(choice) {
+      endGame();
+      const now = Date.now();
+      if (task === 'math') mathTime += (now - startTime) / 1000;
+      if (task === 'dodge') gameTime += (now - startTime) / 1000;
+      startTime = now;
+      task = choice;
+      document.getElementById("math-task").style.display = (choice === 'math') ? "block" : "none";
+      document.getElementById("dodge-task").style.display = (choice === 'dodge') ? "block" : "none";
+      if (choice === "math") generateProblem();
+      if (choice === "dodge") startGame();
+    }
+
+    function generateProblem() {
+      const num1 = Math.floor(Math.random() * 10) + 1;
+      const num2 = Math.floor(Math.random() * 10) + 1;
+      const ops = ["+", "-", "*"];
+      const op = ops[Math.floor(Math.random() * 3)];
+      currentAnswer = eval(`${num1}${op}${num2}`);
+      document.getElementById("problem").innerText = `${num1} ${op} ${num2} = ?`;
+      document.getElementById("answerInput").value = "";
+      document.getElementById("answerInput").focus();
+    }
+
+    function submitAnswer() {
+      const ans = parseInt(document.getElementById("answerInput").value);
+      if (!isNaN(ans)) {
+        problemsAttempted++;
+        if (ans === currentAnswer) problemsCorrect++;
+      }
+      generateProblem();
+    }
+
+    function updateTime() {
+      totalTime++;
+      if (totalTime >= 1200 && !sessionEnded) {
+        endSession();
+      }
+    }
+
+    function endSession() {
+      sessionEnded = true;
+      clearInterval(interval);
+      document.getElementById("end-buttons").style.display = "block";
+      alert("Time's up! Click 'Copy Session Data' to submit.");
+    }
+
+    function copyData() {
+      const percent = problemsAttempted > 0 ? Math.round((problemsCorrect / problemsAttempted) * 100) : 0;
+      const text = `Time spent on math: ${Math.floor(mathTime)}s, Time spent on games: ${Math.floor(gameTime)}s, Math problems attempted: ${problemsAttempted}, Math accuracy: ${percent}%`;
+      navigator.clipboard.writeText(text).then(() => alert("Session data copied!"));
+    }
+
+    function resetSession() {
+      location.reload();
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (task === "math" && e.key === "Enter") submitAnswer();
+      if (task === "dodge") {
+        if (e.key === "ArrowLeft") playerPos = Math.max(0, playerPos - 10);
+        if (e.key === "ArrowRight") playerPos = Math.min(90, playerPos + 10);
+        document.getElementById("player").style.left = `${playerPos}%`;
+      }
+    });
+
+    function startGame() {
+      gameRunning = true;
+      obstacleTop = 0;
+      obstacleLeft = Math.random() * 90;
+      speed = 2;
+      dodgeScore = 0;
+      document.getElementById("gameOverMsg").style.display = "none";
+      document.getElementById("obstacle").style.top = "0%";
+      document.getElementById("dodgeScore").innerText = "0";
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function endGame() {
+      gameRunning = false;
+    }
+
+    function gameLoop() {
+      if (!gameRunning) return;
+      obstacleTop += speed;
+      if (obstacleTop > 100) {
+        obstacleTop = 0;
+        obstacleLeft = Math.random() * 90;
+        dodgeScore++;
+        document.getElementById("dodgeScore").innerText = dodgeScore;
+        speed = Math.min(speed + 0.2, 4);
+      }
+      if (obstacleTop >= 90 && Math.abs(playerPos - obstacleLeft) < 10) {
+        gameRunning = false;
+        document.getElementById("gameOverMsg").style.display = "block";
+        return;
+      }
+      document.getElementById("obstacle").style.top = `${obstacleTop}%`;
+      document.getElementById("obstacle").style.left = `${obstacleLeft}%`;
+      requestAnimationFrame(gameLoop);
+    }
+
+    function restartGame() {
+      switchTask("dodge");
+    }
+  </script>
+</body>
+</html>
