@@ -114,6 +114,8 @@
     let speed = 3;
     let dodgeStart;
     let dodgeInterval, tickInterval;
+    let readyToRestart = false;
+
 
     function startTask() {
       document.getElementById("intro").style.display = "none";
@@ -197,6 +199,7 @@
       obstacle.style.top = obstacleTop + "%";
       if (obstacleTop >= 90 && Math.abs(dodgePosition - obstacleLeft) < 10) {
         gameRunning = false;
+        readyToRestart = true;
         clearInterval(dodgeInterval);
         document.getElementById("gameOverMessage").style.display = "block";
       }
@@ -225,16 +228,18 @@ document.addEventListener("keydown", (e) => {
 
   if (task === "dodge") {
     // 🧨 Only allow Enter to restart *after* game over
-    if (!gameRunning && e.key === "Enter") {
-      if (!canRestart) return;
-      canRestart = false;
-      setTimeout(() => { canRestart = true; }, 1500);
+  if (!gameRunning && readyToRestart && e.key === "Enter") {
+  if (!canRestart) return;
 
-      // ✅ Make sure we cancel any leftover intervals
-      clearInterval(dodgeInterval);
-      selectTask("dodge"); // resets UI and calls startDodgeGame()
-      return;
-    }
+  canRestart = false;
+  setTimeout(() => { canRestart = true; }, 1500);
+
+  clearInterval(dodgeInterval);
+  readyToRestart = false; // prevent double restarts
+  selectTask("dodge"); // this will call startDodgeGame
+  return;
+}
+
 
     // 🎯 Movement only while game is running
     if (gameRunning) {
