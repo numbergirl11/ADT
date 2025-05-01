@@ -212,32 +212,34 @@
       document.getElementById("obstacle").style.left = obstacleLeft + "%";
     }
 
-   let canRestart = true;
+let canRestart = true;
 
 document.addEventListener("keydown", (e) => {
-  if (task === "math" && e.key === "Enter") submitAnswer();
+  if (task === "math" && e.key === "Enter") {
+    submitAnswer();
+  }
 
   if (task === "dodge") {
-    if (!canRestart) return; // prevent spammy restarts
-
-    if (e.key === "ArrowLeft") dodgePosition = Math.max(0, dodgePosition - 10);
-    if (e.key === "ArrowRight") dodgePosition = Math.min(90, dodgePosition + 10);
-
     if (gameOver && e.key === "Enter") {
+      if (!canRestart) return;
+
       canRestart = false;
       setTimeout(() => {
         canRestart = true;
-      }, 1500); // 1.5 second cooldown to prevent spamming
+      }, 1500);
 
-      restartDodgeGame(); // ← replace with your actual restart function
+      restartDodgeGame(); // Replace with your actual function
       return;
     }
 
-    updateDodgeElements();
+    if (!gameOver) {
+      if (e.key === "ArrowLeft") dodgePosition = Math.max(0, dodgePosition - 10);
+      if (e.key === "ArrowRight") dodgePosition = Math.min(90, dodgePosition + 10);
+      updateDodgeElements();
+    }
   }
 });
 
-    });
 
     function copyData() {
       const percent = mathAttempted > 0 ? Math.round((mathSolved / mathAttempted) * 100) : 0;
