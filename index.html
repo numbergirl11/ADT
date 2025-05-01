@@ -219,25 +219,26 @@ document.addEventListener("keydown", (e) => {
     submitAnswer();
   }
 
-  if (task === "dodge") {
-    if (gameOver && e.key === "Enter") {
-      if (!canRestart) return;
+if (task === "dodge") {
+  if (!gameRunning && e.key === "Enter") {
+    if (!canRestart) return;
 
-      canRestart = false;
-      setTimeout(() => {
-        canRestart = true;
-      }, 1500);
+    canRestart = false;
+    setTimeout(() => {
+      canRestart = true;
+    }, 1500);
 
-      restartDodgeGame(); // Replace with your actual function
-      return;
-    }
-
-    if (!gameOver) {
-      if (e.key === "ArrowLeft") dodgePosition = Math.max(0, dodgePosition - 10);
-      if (e.key === "ArrowRight") dodgePosition = Math.min(90, dodgePosition + 10);
-      updateDodgeElements();
-    }
+    selectTask('dodge'); // ← you were using this to restart the game
+    return;
   }
+
+  if (gameRunning) {
+    if (e.key === "ArrowLeft") dodgePosition = Math.max(0, dodgePosition - 10);
+    if (e.key === "ArrowRight") dodgePosition = Math.min(90, dodgePosition + 10);
+    updateDodgeElements();
+  }
+}
+
 });
 
 
