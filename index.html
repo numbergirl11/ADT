@@ -95,7 +95,7 @@
     </div>
     <div id="gameOverMessage" style="color:red; margin-top:10px; display:none">
       <p>Game Over!</p>
-      <button class="btn" onclick="selectTask('dodge')">Play Again</button>
+      <button class="btn" onclick="selectTask('dodge'); startDodgeGame()">Play Again</button>
     </div>
   </div>
 
@@ -177,12 +177,15 @@
     }
 
     function startDodgeGame() {
+      clearInterval(dodgeInterval);
       gameRunning = true;
       dodgeScore = 0;
+      dodgePosition = 50;
       obstacleTop = 0;
       speed = 3;
       dodgeStart = Date.now();
       obstacleLeft = Math.random() * 90;
+      document.getElementById("gameOverMessage").style.display = "none";
       updateDodgeElements();
       dodgeInterval = setInterval(moveObstacle, 100);
     }
@@ -199,7 +202,7 @@
       }
       if (obstacleTop >= 100) {
         dodgeScore++;
-        speed = Math.min(speed + 0.3, 15);
+        speed = Math.min(speed + 0.3, 18);
         obstacleTop = 0;
         obstacleLeft = Math.random() * 90;
         document.getElementById("dodgeScore").textContent = dodgeScore;
@@ -215,33 +218,25 @@
 let canRestart = true;
 
 document.addEventListener("keydown", (e) => {
-  if (task === "math" && e.key === "Enter") {
-    submitAnswer();
-  }
+  if (task === "math" && e.key === "Enter") submitAnswer();
 
-if (task === "dodge") {
-  if (!gameRunning) {
-    // Game is over, allow Enter restart with debounce
-    if (e.key === "Enter") {
+  if (task === "dodge") {
+    if (!gameRunning && e.key === "Enter") {
       if (!canRestart) return;
-
       canRestart = false;
-      setTimeout(() => {
-        canRestart = true;
-      }, 1500);
+      setTimeout(() => canRestart = true, 1500);
 
-      selectTask('dodge'); // Restart the game
+      selectTask("dodge");
+      startDodgeGame();
       return;
     }
-  } else {
-    // Game is still running — only allow movement keys
-    if (e.key === "ArrowLeft") dodgePosition = Math.max(0, dodgePosition - 10);
-    if (e.key === "ArrowRight") dodgePosition = Math.min(90, dodgePosition + 10);
-    updateDodgeElements();
+
+    if (gameRunning) {
+      if (e.key === "ArrowLeft") dodgePosition = Math.max(0, dodgePosition - 10);
+      if (e.key === "ArrowRight") dodgePosition = Math.min(90, dodgePosition + 10);
+      updateDodgeElements();
+    }
   }
-}
-
-
 });
 
 
