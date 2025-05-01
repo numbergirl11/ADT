@@ -220,24 +220,27 @@ document.addEventListener("keydown", (e) => {
   }
 
 if (task === "dodge") {
-  if (!gameRunning && e.key === "Enter") {
-    if (!canRestart) return;
+  if (!gameRunning) {
+    // Game is over, allow Enter restart with debounce
+    if (e.key === "Enter") {
+      if (!canRestart) return;
 
-    canRestart = false;
-    setTimeout(() => {
-      canRestart = true;
-    }, 1500);
+      canRestart = false;
+      setTimeout(() => {
+        canRestart = true;
+      }, 1500);
 
-    selectTask('dodge'); // ← you were using this to restart the game
-    return;
-  }
-
-  if (gameRunning) {
+      selectTask('dodge'); // Restart the game
+      return;
+    }
+  } else {
+    // Game is still running — only allow movement keys
     if (e.key === "ArrowLeft") dodgePosition = Math.max(0, dodgePosition - 10);
     if (e.key === "ArrowRight") dodgePosition = Math.min(90, dodgePosition + 10);
     updateDodgeElements();
   }
 }
+
 
 });
 
