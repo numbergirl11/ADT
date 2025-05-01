@@ -218,19 +218,25 @@
 let canRestart = true;
 
 document.addEventListener("keydown", (e) => {
-  if (task === "math" && e.key === "Enter") submitAnswer();
+  if (task === "math" && e.key === "Enter") {
+    submitAnswer();
+    return;
+  }
 
   if (task === "dodge") {
+    // 🧨 Only allow Enter to restart *after* game over
     if (!gameRunning && e.key === "Enter") {
       if (!canRestart) return;
       canRestart = false;
-      setTimeout(() => canRestart = true, 1500);
+      setTimeout(() => { canRestart = true; }, 1500);
 
-      selectTask("dodge");
-      startDodgeGame();
+      // ✅ Make sure we cancel any leftover intervals
+      clearInterval(dodgeInterval);
+      selectTask("dodge"); // resets UI and calls startDodgeGame()
       return;
     }
 
+    // 🎯 Movement only while game is running
     if (gameRunning) {
       if (e.key === "ArrowLeft") dodgePosition = Math.max(0, dodgePosition - 10);
       if (e.key === "ArrowRight") dodgePosition = Math.min(90, dodgePosition + 10);
@@ -238,6 +244,7 @@ document.addEventListener("keydown", (e) => {
     }
   }
 });
+
 
 
     function copyData() {
